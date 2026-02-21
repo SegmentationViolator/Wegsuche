@@ -6,18 +6,17 @@ from lib.grid import Grid
 from . import Algorithm
 
 class BFS(Algorithm):
-    __slots__: tuple[str, ...] = ("parent", "queue", "visited")
+    __slots__: tuple[str, ...] = ("queue", "visited")
 
-    parent: list[int | None]
     queue: collections.deque[int]
     visited: list[bool]
 
     def __init__(self, grid: Grid, root: int, target: int):
         super().__init__(grid, root, target)
 
-        self.parent = [None for _ in range(grid.height * grid.width)]
         self.queue = collections.deque((self.root,))
-        self.visited = [True if i == self.root else False for i in range(grid.height * grid.width)]
+        self.visited = [False for _ in range(grid.height * grid.width)]
+        self.visited[self.root] = True
 
     @typing.override
     def step(self) -> bool | None:
@@ -34,8 +33,8 @@ class BFS(Algorithm):
 
             if self.visited[index]:
                 continue
-            self.queue.append(index)
 
+            self.queue.append(index)
             self.parent[index] = cell
             self.visited[index] = True
 
