@@ -3,7 +3,7 @@ import enum
 import random
 import typing
 
-class Cell(enum.IntEnum):
+class Cell(enum.Enum):
     FREE = 0
     WALL = 1
 
@@ -60,5 +60,5 @@ class Grid:
         for dx, dy in type(self).NEIGHBOUR_OFFSETS:
             nx, ny = x + dx, y + dy
 
-            if 0 <= ny < self.height and 0 <= nx < self.width and self[nx, ny] != Cell.WALL:
+            if 0 <= ny < self.height and 0 <= nx < self.width and self[nx, ny] is not Cell.WALL:
                 yield nx, ny

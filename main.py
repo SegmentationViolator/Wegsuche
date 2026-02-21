@@ -1,6 +1,7 @@
 from lib.algorithms import Algorithm
 from lib.algorithms.astar import AStar
-# from lib.algorithms.bfs import BFS
+from lib.algorithms.bfs import BFS
+from lib.algorithms.bibfs import BiBFS
 from lib.grid import Grid
 
 if __name__ == "__main__":
@@ -12,7 +13,7 @@ if __name__ == "__main__":
         target = H * W - 1
 
         grid = Grid.generate(H, W, root, target)
-        path_finder: Algorithm = AStar(grid, root, target)
+        path_finder: Algorithm = BiBFS(grid, root, target)
 
         for y in range(H):
             row = grid.cells[y*W:(y+1)*W]
@@ -27,10 +28,10 @@ if __name__ == "__main__":
         if not found:
             return print("No solution")
 
-        path: list[int] = []
+        path: set[int] = set()
         current = target
         while current != None:
-            path.append(current)
+            path.add(current)
             current = path_finder.parent[current]
 
         for y in range(H):
