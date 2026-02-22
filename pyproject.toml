@@ -1,0 +1,18 @@
+[project]
+name = "wegsuche"
+version = "0.1.0"
+description = "A visualizer for various path finding algorithms"
+authors = [
+    {name = "Segmentation Violator",email = "segmentationviolator@proton.me"}
+]
+license = {text = "GPL-3.0-or-later"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dearpygui (>=2.2,<3.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
