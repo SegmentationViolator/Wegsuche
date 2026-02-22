@@ -1,22 +1,34 @@
 import collections
 import typing
 
+import numpy as np
+import numpy.typing as npt
+
 from lib.grid import Grid
 
 from . import Algorithm
 
+
 class BFS(Algorithm):
-    __slots__: tuple[str, ...] = ("queue", "visited")
+    __slots__: tuple[str, ...] = ("queue", "_visited")
 
     queue: collections.deque[int]
-    visited: list[bool]
+    _visited: npt.NDArray[np.bool_]
 
     def __init__(self, grid: Grid, root: int, target: int):
         super().__init__(grid, root, target)
 
         self.queue = collections.deque((self.root,))
-        self.visited = [False for _ in range(grid.height * grid.width)]
-        self.visited[self.root] = True
+        self._visited = np.full(grid.height * grid.width, False, dtype=np.bool_)
+        self._visited[self.root] = True
+
+    @typing.override
+    def explored(self) -> npt.NDArray[np.intp]:
+        return np.flatnonzero(self._visited == True)
+
+    @typing.override
+    def frontier(self) -> npt.NDArray[np.intp]:
+        return np.fromiter(self.queue, dtype=np.intp)
 
     @typing.override
     def step(self) -> bool | None:
@@ -29,13 +41,11 @@ class BFS(Algorithm):
             return True
 
         for neighbour in self.grid.neighbours(cell):
-            index = neighbour[1] * self.grid.width + neighbour[0]
-
-            if self.visited[index]:
+            if self._visited[neighbour]:
                 continue
 
-            self.queue.append(index)
-            self.parent[index] = cell
-            self.visited[index] = True
+            self.queue.append(neighbour)
+            self.parent[neighbour] = cell
+            self._visited[neighbour] = True
 
         return None

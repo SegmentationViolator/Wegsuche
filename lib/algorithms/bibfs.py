@@ -2,27 +2,43 @@ import collections
 import enum
 import typing
 
+import numpy as np
+import numpy.typing as npt
+
 from lib.grid import Grid
 
 from . import Algorithm
 
+
 class Turn(enum.IntEnum):
-    Root = enum.auto()
-    Target = enum.auto()
+    Neither = -1
+    Root = 0
+    Target = 1
+
 
 class BiBFS(Algorithm):
-    __slots__: tuple[str, ...] = ("queue", "visited")
+    __slots__: tuple[str, ...] = ("queue", "_visited")
 
     queue: collections.deque[tuple[int, Turn]]
-    visited: list[tuple[bool, Turn | None]]
+    _visited: npt.NDArray[np.int8]
 
     def __init__(self, grid: Grid, root: int, target: int):
         super().__init__(grid, root, target)
 
-        self.queue = collections.deque(((self.root, Turn.Root), (self.target, Turn.Target)))
-        self.visited = [(False, None) for _ in range(grid.height * grid.width)]
-        self.visited[self.root] = (True, Turn.Root)
-        self.visited[self.target] = (True, Turn.Target)
+        self.queue = collections.deque(
+            ((self.root, Turn.Root), (self.target, Turn.Target))
+        )
+        self._visited = np.full(grid.height * grid.width, Turn.Neither, dtype=np.int8)
+        self._visited[self.root] = Turn.Root
+        self._visited[self.target] = Turn.Target
+
+    @typing.override
+    def explored(self) -> npt.NDArray[np.intp]:
+        return np.flatnonzero(self._visited != Turn.Neither)
+
+    @typing.override
+    def frontier(self) -> npt.NDArray[np.intp]:
+        return np.fromiter((idx for idx, _ in self.queue), dtype=np.intp)
 
     @typing.override
     def step(self) -> bool | None:
@@ -32,34 +48,35 @@ class BiBFS(Algorithm):
         cell, turn = self.queue.popleft()
 
         for neighbour in self.grid.neighbours(cell):
-            index = neighbour[1] * self.grid.width + neighbour[0]
+            visited = Turn(self._visited[neighbour])
 
-            if self.visited[index][0]:
-                if self.visited[index][1] != turn:
-                    match turn:
-                        case Turn.Root:
-                            previous = cell
-                            current = index
-                            next = self.parent[current]
-                        case Turn.Target:
-                            previous = index
-                            current = cell
-                            next = self.parent[current]
-
-                    while current is not None:
-                        self.parent[current] = previous
-                        previous = current
-                        current = next
-
-                        if next is not None:
-                            next = self.parent[next]
-
-                    print(1)
-                    return True
+            if visited == turn:
                 continue
 
-            self.queue.append((index, turn))
-            self.parent[index] = cell
-            self.visited[index] = (True, turn)
+            if visited != Turn.Neither and visited != turn:
+                match turn:
+                    case Turn.Root:
+                        previous = cell
+                        current = neighbour
+                    case Turn.Target:
+                        previous = neighbour
+                        current = cell
+                    case Turn.Neither:
+                        raise RuntimeError("reached unreachable case")
+                next = int(self.parent[current])
+
+                while current > -1:
+                    self.parent[current] = previous
+                    previous = current
+                    current = next
+
+                    if next > -1:
+                        next = int(self.parent[next])
+
+                return True
+
+            self.queue.append((neighbour, turn))
+            self.parent[neighbour] = cell
+            self._visited[neighbour] = turn
 
         return None

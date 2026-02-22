@@ -1,64 +1,75 @@
 from collections import abc
 import enum
-import random
 import typing
 
-class Cell(enum.Enum):
+import numpy as np
+import numpy.typing as npt
+
+
+class Cell(enum.IntEnum):
     FREE = 0
     WALL = 1
+
 
 class Grid:
     __slots__: tuple[str, ...] = ("cells", "height", "width")
 
-    NEIGHBOUR_OFFSETS: tuple[tuple[int, int], ...] = (
-        (-1, 0), (0, -1), (1, 0), (0, 1),
+    NEIGHBOUR_OFFSETS: npt.NDArray[np.int8] = np.array(
+        [
+            (-1, 0),
+            (0, -1),
+            (1, 0),
+            (0, 1),
+        ],
+        dtype=np.int8,
     )
 
-    cells: list[Cell]
+    cells: npt.NDArray[np.int8]
     height: int
     width: int
 
-    def __init__(self, cells: list[Cell], height: int, width: int):
-        if len(cells) != height * width:
-            raise ValueError("len(cells) != height * width")
+    def __init__(self, cells: npt.NDArray[np.int8]):
+        if cells.ndim != 2:
+            raise ValueError("cells must be a 2D array")
 
         self.cells = cells
-        self.height = height
-        self.width = width
-
-    def __getitem__(self, index: tuple[int, int]) -> Cell:
-        x, y = index
-
-        if y >= self.height or x >= self.width:
-            raise IndexError("grid index out of range")
-
-        return self.cells[y * self.width + x]
+        self.height, self.width = cells.shape
 
     @classmethod
-    def generate(cls, height: int, width: int, root: int, target: int) -> typing.Self:
+    def generate(
+        cls, height: int, width: int, root: int, target: int, rng: np.random.Generator
+    ) -> typing.Self:
         length = height * width
+        if root >= length or target >= length:
+            raise IndexError("root or target index out of range")
 
-        if root >= length:
-            raise IndexError("root index out of range")
+        cells = rng.random((height, width)) < 0.3
+        cells = cells.astype(np.int8) * Cell.WALL
 
-        if target >= length:
-            raise IndexError("target index out of range")
+        ry, rx = divmod(root, width)
+        ty, tx = divmod(target, width)
 
-        cells = [Cell.WALL if random.random() < 0.3 else Cell.FREE for _ in range(height * width)]
-        cells[root] = Cell.FREE
-        cells[target] = Cell.FREE
+        cells[ry, rx] = Cell.FREE
+        cells[ty, tx] = Cell.FREE
 
-        return cls(
-            cells,
-            height,
-            width
-        )
+        return cls(cells)
 
-    def neighbours(self, cell: int) -> abc.Iterator[tuple[int, int]]:
-        x, y = cell % self.width, cell // self.width
+    def neighbours(self, cell: int) -> abc.Iterator[int]:
+        y, x = divmod(cell, self.width)
 
-        for dx, dy in type(self).NEIGHBOUR_OFFSETS:
-            nx, ny = x + dx, y + dy
+        offsets = self.NEIGHBOUR_OFFSETS
+        xs = x + offsets[:, 0]
+        ys = y + offsets[:, 1]
 
-            if 0 <= ny < self.height and 0 <= nx < self.width and self[nx, ny] is not Cell.WALL:
-                yield nx, ny
+        in_bounds = (0 <= xs) & (xs < self.width) & (0 <= ys) & (ys < self.height)
+
+        xs = xs[in_bounds]
+        ys = ys[in_bounds]
+
+        not_wall = self.cells[ys, xs] != Cell.WALL
+
+        xs = xs[not_wall]
+        ys = ys[not_wall]
+
+        for nx, ny in zip(xs, ys):
+            yield int(ny) * self.width + int(nx)
