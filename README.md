@@ -1,4 +1,4 @@
-# Wegsuchee
+# Wegsuche
 A graphical visualizer for various path finding algorithms
 
 ## Usage
