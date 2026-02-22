@@ -23,6 +23,7 @@ uv run python main.py
 
 ## Showcase
 
+Grid: 32x32
 Seed: `seed used for test`
 
 ### A* Search
