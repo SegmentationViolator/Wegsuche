@@ -326,15 +326,15 @@ class App:
         if origin_changed:
             ox, oy = new_origin
             self.state.origin = (
-                min(max(ox, 0), self.state.grid_width),
-                min(max(oy, 0), self.state.grid_height),
+                min(max(ox, 0), self.state.grid_width - 1),
+                min(max(oy, 0), self.state.grid_height - 1),
             )
 
         if target_changed:
             tx, ty = new_target
             self.state.target = (
-                min(max(tx, 0), self.state.grid_width),
-                min(max(ty, 0), self.state.grid_height),
+                min(max(tx, 0), self.state.grid_width - 1),
+                min(max(ty, 0), self.state.grid_height - 1),
             )
 
         if start_btn_pressed:
