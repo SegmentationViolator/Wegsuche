@@ -12,7 +12,7 @@ from . import Algorithm
 
 class Turn(enum.IntEnum):
     Neither = -1
-    Root = 0
+    Origin = 0
     Target = 1
 
 
@@ -23,15 +23,15 @@ class BiBFS(Algorithm):
     queue: collections.deque[tuple[int, Turn]]
     _visited: npt.NDArray[np.int8]
 
-    def __init__(self, grid: Grid, root: int, target: int):
-        super().__init__(grid, root, target)
+    def __init__(self, grid: Grid, origin: int, target: int):
+        super().__init__(grid, origin, target)
 
         self.frontier_count = [1, 1]
         self.queue = collections.deque(
-            ((self.root, Turn.Root), (self.target, Turn.Target))
+            ((self.origin, Turn.Origin), (self.target, Turn.Target))
         )
         self._visited = np.full(grid.height * grid.width, Turn.Neither, dtype=np.int8)
-        self._visited[self.root] = Turn.Root
+        self._visited[self.origin] = Turn.Origin
         self._visited[self.target] = Turn.Target
 
     @typing.override
@@ -44,7 +44,9 @@ class BiBFS(Algorithm):
 
     @typing.override
     def step(self) -> bool | None:
-        if len(self.queue) == 0 or any(map(lambda count: count == 0, self.frontier_count)):
+        if len(self.queue) == 0 or any(
+            map(lambda count: count == 0, self.frontier_count)
+        ):
             return False
 
         cell, turn = self.queue.popleft()
@@ -58,7 +60,7 @@ class BiBFS(Algorithm):
 
             if visited != Turn.Neither and visited != turn:
                 match turn:
-                    case Turn.Root:
+                    case Turn.Origin:
                         previous = cell
                         current = neighbour
                     case Turn.Target:

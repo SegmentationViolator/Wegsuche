@@ -15,12 +15,12 @@ class BFS(Algorithm):
     queue: collections.deque[int]
     _visited: npt.NDArray[np.bool_]
 
-    def __init__(self, grid: Grid, root: int, target: int):
-        super().__init__(grid, root, target)
+    def __init__(self, grid: Grid, origin: int, target: int):
+        super().__init__(grid, origin, target)
 
-        self.queue = collections.deque((self.root,))
+        self.queue = collections.deque((self.origin,))
         self._visited = np.full(grid.height * grid.width, False, dtype=np.bool_)
-        self._visited[self.root] = True
+        self._visited[self.origin] = True
 
     @typing.override
     def explored(self) -> npt.NDArray[np.intp]:

@@ -41,9 +41,11 @@ COLOR_LUT = np.array(
 class State:
     grid_height: int = MIN_GRID_HEIGHT
     grid_width: int = MIN_GRID_WIDTH
-    seed: str | None = None
     texture_height: int = MIN_GRID_HEIGHT
     texture_width: int = MIN_GRID_WIDTH
+    kernel: str | None = None
+    origin: tuple[int, int] | None = None
+    target: tuple[int, int] | None = None
 
     menu_visible: bool = True
     started: bool = False
@@ -97,6 +99,7 @@ class App:
     def render_grid(self, fb_h: int, fb_w: int):
         assert self.grid_texture is not None
 
+        fb_aspect = fb_w / fb_h
         grid_aspect = self.state.grid_width / self.state.grid_height
 
         if grid_aspect > 1:
@@ -110,10 +113,10 @@ class App:
             offset_x = (fb_w - draw_w) / 2
             offset_y = 0
         else:
-            draw_h = fb_h
-            draw_w = fb_w
-            offset_x = 0
-            offset_y = 0
+            draw_h = fb_h if fb_aspect >= 1 else fb_w / grid_aspect
+            draw_w = fb_w if fb_aspect <= 1 else fb_h * grid_aspect
+            offset_x = (fb_w - draw_w) / 2
+            offset_y = (fb_h - draw_h) / 2
 
         imgui.set_next_window_pos((0.0, 0.0))
         imgui.set_next_window_size((fb_w, fb_h))
@@ -124,6 +127,8 @@ class App:
             | imgui.WindowFlags.NO_NAV_FOCUS
             | imgui.WindowFlags.NO_RESIZE
             | imgui.WindowFlags.NO_SAVED_SETTINGS
+            | imgui.WindowFlags.NO_SCROLLBAR
+            | imgui.WindowFlags.NO_SCROLL_WITH_MOUSE
             | imgui.WindowFlags.NO_TITLE_BAR
         )
 
@@ -135,7 +140,10 @@ class App:
             (draw_w, draw_h),
         )
 
-        if self.state.started != True and self.algorithm_manager.algorithm_instance.path is None:
+        if (
+            self.state.started != True
+            and self.algorithm_manager.algorithm_instance.path is None  # pyright: ignore[reportOptionalMemberAccess]
+        ):
             draw_list = imgui.get_window_draw_list()
             imgui.push_font(None, HEADER_FONT_SIZE)
 
@@ -222,23 +230,50 @@ class App:
         imgui.spacing()
         imgui.spacing()
 
-        imgui.text("Seed")
+        imgui.text("Kernel")
+        indent = imgui.get_item_rect_size()[0] * 1.2
 
-        indent = imgui.get_item_rect_size()[0] + 12
-        width = imgui.calc_text_size("Leave blank to generate randomly")[0] * (
-            HINT_FONT_SIZE / NORMAL_FONT_SIZE
-        )
+        imgui.push_font(None, HINT_FONT_SIZE)
+        hint = "Seed used to generate a maze. Leave blank to generate randomly"
+        width = imgui.calc_text_size(hint)[0]
+        imgui.pop_font()
 
         imgui.same_line()
         imgui.push_item_width(width)
-        seed_changed, new_seed = imgui.input_text("##seed", self.state.seed or "")
-        imgui.indent(indent)
+        kernel_changed, new_kernel = imgui.input_text(
+            "##kernel", self.state.kernel or ""
+        )
+        imgui.pop_item_width()
+
         imgui.push_font(None, HINT_FONT_SIZE)
-        imgui.text_disabled("Leave blank to generate randomly")
+        imgui.indent(indent)
+
+        imgui.text_disabled(hint)
+
         imgui.unindent(indent)
         imgui.pop_font()
 
         imgui.spacing()
+        imgui.spacing()
+
+        imgui.text("Origin")
+        imgui.same_line()
+        imgui.push_item_width(128)
+        origin_changed, new_origin = imgui.input_int2(
+            "##origin", self.state.origin or (0, 0)
+        )
+        imgui.pop_item_width()
+
+        imgui.text("Target")
+        imgui.same_line()
+        imgui.push_item_width(128)
+        target_changed, new_target = imgui.input_int2(
+            "##target",
+            self.state.target
+            or (self.state.grid_width - 1, self.state.grid_height - 1),
+        )
+        imgui.pop_item_width()
+
         imgui.unindent(32.0)
         imgui.pop_font()
 
@@ -273,33 +308,60 @@ class App:
             self.state.grid_height = max(
                 min(new_height, MAX_GRID_HEIGHT), MIN_GRID_HEIGHT
             )
+            if self.state.origin is not None:
+                origin_changed, new_origin = True, self.state.origin
+            if self.state.target is not None:
+                target_changed, new_target = True, self.state.target
 
         if width_changed:
             self.state.grid_width = max(min(new_width, MAX_GRID_WIDTH), MIN_GRID_WIDTH)
+            if self.state.origin is not None:
+                origin_changed, new_origin = True, self.state.origin
+            if self.state.target is not None:
+                target_changed, new_target = True, self.state.target
 
-        if seed_changed:
-            self.state.seed = new_seed or None
+        if kernel_changed:
+            self.state.kernel = new_kernel or None
+
+        if origin_changed:
+            ox, oy = new_origin
+            self.state.origin = (
+                min(max(ox, 0), self.state.grid_width),
+                min(max(oy, 0), self.state.grid_height),
+            )
+
+        if target_changed:
+            tx, ty = new_target
+            self.state.target = (
+                min(max(tx, 0), self.state.grid_width),
+                min(max(ty, 0), self.state.grid_height),
+            )
 
         if start_btn_pressed:
-            root = 0
-            target = self.state.grid_height * self.state.grid_width - 1
+            ox, oy = self.state.origin or (0, 0)
+            tx, ty = self.state.target or (
+                self.state.grid_width - 1,
+                self.state.grid_height - 1,
+            )
+            origin = oy * self.state.grid_width + ox
+            target = ty * self.state.grid_width + tx
 
-            if self.state.seed is None:
-                self.state.seed = str(
+            if self.state.kernel is None:
+                self.state.kernel = str(
                     np.random.default_rng().integers(0, 2**32, dtype=np.uint32)
                 )
 
             grid = Grid.generate(
                 self.state.grid_height,
                 self.state.grid_width,
-                root,
+                origin,
                 target,
                 np.random.default_rng(
-                    np.random.SeedSequence(list(self.state.seed.encode("utf-8")))
+                    np.random.SeedSequence(list(self.state.kernel.encode("utf-8")))
                 ),
             )
 
-            self.algorithm_manager.instantiate_algorithm(grid, root, target)
+            self.algorithm_manager.instantiate_algorithm(grid, origin, target)
             self.update_grid_texture()
 
             self.state.started = True

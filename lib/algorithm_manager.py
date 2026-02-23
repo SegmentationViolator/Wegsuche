@@ -29,9 +29,9 @@ class AlgorithmManager:
         self.algorithm_instance = None
         self.algorithm_selection = 0
 
-    def instantiate_algorithm(self, grid: Grid, root: int, target: int):
+    def instantiate_algorithm(self, grid: Grid, origin: int, target: int):
         self.algorithm_instance = type(self).ALGORITHMS[self.algorithm_selection](
-            grid, root, target
+            grid, origin, target
         )
 
     def render(self):

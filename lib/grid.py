@@ -37,19 +37,25 @@ class Grid:
 
     @classmethod
     def generate(
-        cls, height: int, width: int, root: int, target: int, rng: np.random.Generator
+        cls,
+        height: int,
+        width: int,
+        origin: int,
+        target: int,
+        rng: np.random.Generator,
     ) -> typing.Self:
         length = height * width
-        if root >= length or target >= length:
-            raise IndexError("root or target index out of range")
+
+        if origin >= length or target >= length:
+            raise IndexError("origin or target index out of range")
 
         cells = rng.random((height, width)) < 0.3
         cells = cells.astype(np.int8) * Cell.WALL
 
-        ry, rx = divmod(root, width)
+        oy, ox = divmod(origin, width)
         ty, tx = divmod(target, width)
 
-        cells[ry, rx] = Cell.FREE
+        cells[oy, ox] = Cell.FREE
         cells[ty, tx] = Cell.FREE
 
         return cls(cells)

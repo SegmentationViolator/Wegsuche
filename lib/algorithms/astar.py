@@ -15,12 +15,12 @@ class AStar(Algorithm):
     distance: npt.NDArray[np.int16]
     queue: list[tuple[int, int]]
 
-    def __init__(self, grid: Grid, root: int, target: int):
-        super().__init__(grid, root, target)
+    def __init__(self, grid: Grid, origin: int, target: int):
+        super().__init__(grid, origin, target)
 
         self.distance = np.full(grid.height * grid.width, -1, dtype=np.int16)
-        self.distance[self.root] = 0
-        self.queue = [(self.heuristic(self.root), self.root)]
+        self.distance[self.origin] = 0
+        self.queue = [(self.heuristic(self.origin), self.origin)]
 
     def heuristic(self, index: int) -> int:
         y, x = divmod(index, self.grid.width)

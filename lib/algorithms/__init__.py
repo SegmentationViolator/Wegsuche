@@ -7,19 +7,19 @@ from lib.grid import Grid
 
 
 class Algorithm(abc.ABC):
-    __slots__: tuple[str, ...] = ("grid", "parent", "path", "root", "target")
+    __slots__: tuple[str, ...] = ("grid", "parent", "path", "origin", "target")
 
     grid: Grid
     parent: npt.NDArray[np.intp]
     path: npt.NDArray[np.intp] | None
-    root: int
+    origin: int
     target: int
 
-    def __init__(self, grid: Grid, root: int, target: int):
+    def __init__(self, grid: Grid, origin: int, target: int):
         length = grid.height * grid.width
 
-        if root >= length:
-            raise IndexError("root index out of range")
+        if origin >= length:
+            raise IndexError("origin index out of range")
 
         if target >= length:
             raise IndexError("target index out of range")
@@ -27,7 +27,7 @@ class Algorithm(abc.ABC):
         self.grid = grid
         self.parent = np.full(self.grid.height * self.grid.width, -1, dtype=np.intp)
         self.path = None
-        self.root = root
+        self.origin = origin
         self.target = target
 
     def construct_path(self):

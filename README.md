@@ -1,4 +1,5 @@
 # Wegsuche
+
 A graphical visualizer for various path finding algorithms
 
 ## Usage
@@ -24,7 +25,12 @@ uv run python main.py
 ## Showcase
 
 Grid: 32x32
+
 Seed: `seed used for test`
+
+Root: (0, 0)
+
+Goal: (31, 31)
 
 ### A* Search
 
