@@ -97,19 +97,18 @@ class App:
     def render_grid(self, fb_h: int, fb_w: int):
         assert self.grid_texture is not None
 
-        fb_aspect = fb_w / fb_h
         grid_aspect = self.state.grid_width / self.state.grid_height
 
-        if fb_aspect > 1 and grid_aspect <= 1:
-            draw_h = fb_h
-            draw_w = grid_aspect * fb_h
-            offset_x = (fb_w - draw_w) / 2
-            offset_y = 0
-        elif fb_aspect < 1 and grid_aspect >= 1:
+        if grid_aspect > 1:
             draw_h = fb_w / grid_aspect
             draw_w = fb_w
             offset_x = 0
             offset_y = (fb_h - draw_h) / 2
+        elif grid_aspect < 1:
+            draw_h = fb_h
+            draw_w = fb_h * grid_aspect
+            offset_x = (fb_w - draw_w) / 2
+            offset_y = 0
         else:
             draw_h = fb_h
             draw_w = fb_w
@@ -135,6 +134,36 @@ class App:
             self.grid_texture,
             (draw_w, draw_h),
         )
+
+        if self.state.started != True and self.algorithm_manager.algorithm_instance.path is None:
+            draw_list = imgui.get_window_draw_list()
+            imgui.push_font(None, HEADER_FONT_SIZE)
+
+            text = "No Solution"
+            text_w, text_h = imgui.calc_text_size(text)
+
+            banner_x = offset_x
+            banner_w = draw_w
+
+            banner_h = text_h * 3.2
+            banner_y = offset_y + (draw_h - banner_h) * 0.5
+
+            text_x = banner_x + (banner_w - text_w) * 0.5
+            text_y = banner_y + (banner_h - text_h) * 0.5
+
+            draw_list.add_rect_filled(
+                (banner_x, banner_y),
+                (banner_x + banner_w, banner_y + banner_h),
+                imgui.get_color_u32((0, 0, 0, 0.75)),
+            )
+
+            draw_list.add_text(
+                (text_x, text_y),
+                imgui.get_color_u32((1, 1, 1, 1)),
+                text,
+            )
+
+            imgui.pop_font()
 
         imgui.end()
 
