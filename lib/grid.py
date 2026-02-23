@@ -14,14 +14,14 @@ class Cell(enum.IntEnum):
 class Grid:
     __slots__: tuple[str, ...] = ("cells", "height", "width")
 
-    NEIGHBOUR_OFFSETS: npt.NDArray[np.int8] = np.array(
+    NEIGHBOUR_OFFSETS: npt.NDArray[np.intp] = np.array(
         [
             (-1, 0),
             (0, -1),
             (1, 0),
             (0, 1),
         ],
-        dtype=np.int8,
+        dtype=np.intp,
     )
 
     cells: npt.NDArray[np.int8]
