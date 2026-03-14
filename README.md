@@ -34,12 +34,12 @@ Goal: (31, 31)
 
 ### A* Search
 
-<video src="assets/a-star.mp4" width="1280" height="720" controls></video>
+![A* GIF](assets/a-star.gif)
 
 ### Breadth-First Search
 
-<video src="assets/bfs.mp4" width="1280" height="720" controls></video>
+![BFS GIF](assets/bfs.gif)
 
 ### Bi-directional Breadth-First Search
 
-<video src="assets/bi-bfs.mp4" width="1280" height="720" controls></video>
+![Bi-BFS GIF](assets/bi-bfs.gif)
