@@ -26,7 +26,7 @@ uv run python main.py
 
 Grid: 32x32
 
-Seed: `seed used for test`
+Seed: 1328209556
 
 Root: (0, 0)
 
@@ -34,12 +34,12 @@ Goal: (31, 31)
 
 ### A* Search
 
-![A* screenshot](assets/a-star.png)
+![A* video](assets/a-star.mp4)
 
 ### Breadth-First Search
 
-![BFS screenshot](assets/bfs.png)
+![BFS video](assets/bfs.mp4)
 
 ### Bi-directional Breadth-First Search
 
-![Bi-BFS screenshot](assets/bi-bfs.png)
+![Bi-BFS video](assets/bi-bfs.mp4)

@@ -21,9 +21,9 @@ MIN_GRID_HEIGHT: int = 32
 MAX_GRID_WIDTH: int = 512
 MIN_GRID_WIDTH: int = 32
 
-EXPLORED_COLOR: tuple[int, int, int, int] = (0, 255, 0, 255)
-FRONTIER_COLOR: tuple[int, int, int, int] = (0, 255, 0, 255)
-PATH_COLOR: tuple[int, int, int, int] = (0, 0, 255, 255)
+EXPLORED_COLOR: tuple[int, int, int, int] = (93, 187, 99, 255)
+FRONTIER_COLOR: tuple[int, int, int, int] = (61, 237, 151, 255)
+PATH_COLOR: tuple[int, int, int, int] = (176, 252, 56, 255)
 
 FREE_COLOR: tuple[int, int, int, int] = (255, 255, 255, 255)
 WALL_COLOR: tuple[int, int, int, int] = (62, 61, 83, 255)
@@ -459,21 +459,11 @@ class App:
         rgba = COLOR_LUT[self.algorithm_manager.algorithm_instance.grid.cells]
         flat_view = rgba.reshape(-1, 4)
 
-        flat_view[self.algorithm_manager.algorithm_instance.explored()] = [
-            255,
-            0,
-            0,
-            255,
-        ]
-        flat_view[self.algorithm_manager.algorithm_instance.frontier()] = [
-            0,
-            255,
-            0,
-            255,
-        ]
+        flat_view[self.algorithm_manager.algorithm_instance.explored()] = EXPLORED_COLOR;
+        flat_view[self.algorithm_manager.algorithm_instance.frontier()] = FRONTIER_COLOR;
 
         if self.algorithm_manager.algorithm_instance.path is not None:
-            flat_view[self.algorithm_manager.algorithm_instance.path] = [0, 0, 255, 255]
+            flat_view[self.algorithm_manager.algorithm_instance.path] = PATH_COLOR
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.grid_texture)
 
